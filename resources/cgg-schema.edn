@@ -18,6 +18,7 @@
  :queries
  {:game_by_id
   {:type :BoardGame
+   :description "Access a BoardGame by its unique id, if it exists."
    :args
    {:id {:type ID}}
    :resolve :query/game-by-id}}}
