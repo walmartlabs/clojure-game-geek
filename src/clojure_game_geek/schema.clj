@@ -17,4 +17,4 @@
       slurp
       edn/read-string
       (util/attach-resolvers (resolver-map))
-      (schema/compile)))
+      schema/compile))
