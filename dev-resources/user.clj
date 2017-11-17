@@ -37,7 +37,7 @@
 (defn start-server
   [_]
   (let [server (-> schema
-                   (lp/pedestal-service {:graphiql true})
+                   (lp/service-map {:graphiql true})
                    http/create-server
                    http/start)]
     (browse-url "http://localhost:8888/")
