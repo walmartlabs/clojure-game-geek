@@ -24,7 +24,7 @@
         node))
     m))
 
-(def system (system/new-system))
+(defonce system (system/new-system))
 
 (defn q
   [query-string]
