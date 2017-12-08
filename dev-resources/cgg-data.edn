@@ -23,6 +23,22 @@
    :min_players 2
    :max_players 2}]
 
+ :members
+ [{:id "37"
+   :member_name "curiousattemptbunny"}
+  {:id "1410"
+   :member_name "bleedingedge"}
+  {:id "2812"
+   :member_name "missyo"}]
+
+ :ratings
+ [{:member_id "37" :game_id "1234" :rating 3}
+  {:member_id "1410" :game_id "1234" :rating 5}
+  {:member_id "1410" :game_id "1236" :rating 4}
+  {:member_id "1410" :game_id "1237" :rating 4}
+  {:member_id "2812" :game_id "1237" :rating 4}
+  {:member_id "37" :game_id "1237" :rating 5}]
+
  :designers
  [{:id "200"
    :name "Kris Burm"
