@@ -50,8 +50,7 @@
   [ratings-map]
   (fn [_ _ member]
     (let [id (:id member)]
-      (->> ratings-map
-           (filter #(= id (:member_id %)))))))
+      (filter #(= id (:member_id %)) ratings-map))))
 
 (defn game-rating->game
   [games-map]
