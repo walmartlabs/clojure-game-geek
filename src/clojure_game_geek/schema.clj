@@ -5,40 +5,33 @@
     [com.walmartlabs.lacinia.util :as util]
     [com.walmartlabs.lacinia.schema :as schema]
     [com.stuartsierra.component :as component]
+    [clojure-game-geek.db :as db]
     [clojure.edn :as edn]))
 
-(defn resolve-element-by-id
-  [element-map context args value]
-  (let [{:keys [id]} args]
-    (get element-map id)))
+(defn game-by-id
+  [db]
+  (fn [_ args _]
+    (db/find-game-by-id db (:id args))))
 
-(defn resolve-board-game-designers
-  [designers-map context args board-game]
-  (->> board-game
-       :designers
-       (map designers-map)))
+(defn member-by-id
+  [db]
+  (fn [_ args _]
+    (db/find-member-by-id db (:id args))))
 
-(defn resolve-designer-games
-  [games-map context args designer]
-  (let [{:keys [id]} designer]
-    (->> games-map
-         vals
-         (filter #(-> % :designers (contains? id))))))
+(defn board-game-designers
+  [db]
+  (fn [_ _ board-game]
+    (db/list-designers-for-game db (:id board-game))))
 
-(defn entity-map
-  [data k]
-  (reduce #(assoc %1 (:id %2) %2)
-          {}
-          (get data k)))
+(defn designer-games
+  [db]
+  (fn [_ _ designer]
+    (db/list-games-for-designer db (:id designer))))
 
 (defn rating-summary
-  [cgg-data]
+  [db]
   (fn [_ _ board-game]
-    (let [id (:id board-game)
-          ratings (->> cgg-data
-                       :ratings
-                       (filter #(= id (:game_id %)))
-                       (map :rating))
+    (let [ratings (map :rating (db/list-ratings-for-name db (:id board-game)))
           n (count ratings)]
       {:count n
        :average (if (zero? n)
@@ -47,31 +40,25 @@
                      (float n)))})))
 
 (defn member-ratings
-  [ratings-map]
+  [db]
   (fn [_ _ member]
-    (let [id (:id member)]
-      (filter #(= id (:member_id %)) ratings-map))))
+    (db/list-ratings-for-member db (:id member))))
 
 (defn game-rating->game
-  [games-map]
+  [db]
   (fn [_ _ game-rating]
-    (get games-map (:game_id game-rating))))
+    (db/find-game-by-id db (:game_id game-rating))))
 
 (defn resolver-map
   [component]
-  (let [cgg-data (-> (io/resource "cgg-data.edn")
-                     slurp
-                     edn/read-string)
-        games-map (entity-map cgg-data :games)
-        members-map (entity-map cgg-data :members)
-        designers-map (entity-map cgg-data :designers)]
-    {:query/game-by-id (partial resolve-element-by-id games-map)
-     :query/member-by-id (partial resolve-element-by-id members-map)
-     :BoardGame/designers (partial resolve-board-game-designers designers-map)
-     :BoardGame/rating-summary (rating-summary cgg-data)
-     :GameRating/game (game-rating->game games-map)
-     :Designer/games (partial resolve-designer-games games-map)
-     :Member/ratings (member-ratings (:ratings cgg-data))}))
+  (let [db (:db component)]
+    {:query/game-by-id (game-by-id db)
+     :query/member-by-id (member-by-id db)
+     :BoardGame/designers (board-game-designers db)
+     :BoardGame/rating-summary (rating-summary db)
+     :GameRating/game (game-rating->game db)
+     :Designer/games (designer-games db)
+     :Member/ratings (member-ratings db)}))
 
 (defn load-schema
   [component]
@@ -93,4 +80,6 @@
 
 (defn new-schema-provider
   []
-  {:schema-provider (map->SchemaProvider {})})
+  {:schema-provider (-> {}
+                        map->SchemaProvider
+                        (component/using [:db]))})
