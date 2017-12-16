@@ -71,4 +71,18 @@
    :description "Select a ClojureGameGeek Member by their unique id, if it exists."
    :args
    {:id {:type (non-null ID)}}
-   :resolve :query/member-by-id}}}
+   :resolve :query/member-by-id}}
+
+ :mutations
+ {:rate_game
+  {:type :BoardGame
+   :description "Establishes a rating of a board game, by a Member.
+
+   On success (the game and member both exist), selects the BoardGame.
+   Otherwise, selects nil and an error."
+   :args
+   {:game_id {:type (non-null ID)}
+    :member_id {:type (non-null ID)}
+    :rating {:type (non-null Int)
+             :description "Game rating as a number between 1 and 5."}}
+   :resolve :mutation/rate-game}}}

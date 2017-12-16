@@ -71,3 +71,20 @@
        deref
        :ratings
        (filter #(= member-id (:member_id %)))))
+
+(defn ^:private apply-game-rating
+  [game-ratings game-id member-id rating]
+  (->> game-ratings
+       (remove #(and (= game-id (:game_id %))
+                     (= member-id (:member_id %))))
+       (cons {:game_id game-id
+              :member_id member-id
+              :rating rating})))
+
+(defn upsert-game-rating
+  "Adds a new game rating, or changes the value of an existing game rating."
+  [db game-id member-id rating]
+  (-> db
+      :data
+      (swap! update :ratings apply-game-rating game-id member-id rating)))
+
