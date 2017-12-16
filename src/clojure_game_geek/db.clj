@@ -56,7 +56,7 @@
        :games
        (filter #(-> % :designers (contains? designer-id)))))
 
-(defn list-ratings-for-name
+(defn list-ratings-for-game
   [db game-id]
   (->> db
        :data
