@@ -4,7 +4,9 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/core.async "0.3.443"]
                  [com.stuartsierra/component "0.3.2"]
                  [com.walmartlabs/lacinia "0.25.0-rc-2"]
                  [com.walmartlabs/lacinia-pedestal "0.7.0-rc-2"]
+                 [alaisi/postgres.async "0.8.0"]
                  [io.aviso/logging "0.2.0"]])

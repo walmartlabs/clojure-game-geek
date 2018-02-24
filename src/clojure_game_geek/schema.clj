@@ -3,11 +3,12 @@
   (:require
     [clojure.java.io :as io]
     [com.walmartlabs.lacinia.util :as util]
-    [com.walmartlabs.lacinia.schema :as schema]
+    [com.walmartlabs.lacinia.schema :as schema :refer [as-conformer]]
     [com.walmartlabs.lacinia.resolve :refer [resolve-as]]
     [com.stuartsierra.component :as component]
     [clojure-game-geek.db :as db]
-    [clojure.edn :as edn]))
+    [clojure.edn :as edn])
+  (:import (java.util UUID)))
 
 (defn game-by-id
   [db]
@@ -88,12 +89,22 @@
      :Designer/games (designer-games db)
      :Member/ratings (member-ratings db)}))
 
+(def ^:private uuid-parse
+  (as-conformer (fn [^String v]
+                  (UUID/fromString v))))
+
+(def ^:private uuid-serialize
+  (as-conformer (fn [^UUID v]
+                  (str v))))
+
 (defn load-schema
   [component]
   (-> (io/resource "cgg-schema.edn")
       slurp
       edn/read-string
       (util/attach-resolvers (resolver-map component))
+      (util/attach-scalar-transformers {:uuid-parse uuid-parse
+                                        :uuid-serialize uuid-serialize})
       schema/compile))
 
 (defrecord SchemaProvider [schema]

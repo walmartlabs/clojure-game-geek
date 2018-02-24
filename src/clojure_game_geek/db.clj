@@ -2,72 +2,84 @@
   (:require
     [clojure.edn :as edn]
     [clojure.java.io :as io]
-    [com.stuartsierra.component :as component]))
+    [com.stuartsierra.component :as component]
+    [postgres.async :refer [open-db query! close-db!]]
+    [clojure.core.async :refer [<!!]]))
 
-(defrecord ClojureGameGeekDb [data]
+(defrecord ClojureGameGeekDb [db]
 
   component/Lifecycle
 
   (start [this]
-    (assoc this :data (-> (io/resource "cgg-data.edn")
-                          slurp
-                          edn/read-string
-                          atom)))
+    (assoc this
+           :db (open-db {:hostname "localhost"
+                         :database "cggdb"
+                         :username "cgg_role"
+                         :password "lacinia"
+                         ;; Host port mapped to 5432 in the container
+                         :port 25432})))
 
   (stop [this]
-    (assoc this :data nil)))
+    (close-db! db)
+    (assoc this :db nil)))
 
 (defn new-db
   []
   {:db (map->ClojureGameGeekDb {})})
 
+(defn ^:private take!
+  [ch]
+  (let [v (<!! ch)]
+    (if (instance? Throwable v)
+      (throw v)
+      v)))
+
 (defn find-game-by-id
-  [db game-id]
-  (->> db
-       :data
-       deref
-       :games
-       (filter #(= game-id (:id %)))
-       first))
+  [component game-id]
+  (-> (query! (:db component)
+              ["select game_id, name, summary, min_players, max_players, created_at, updated_at
+               from board_game where game_id = $1" game-id])
+      take!
+      first))
 
 (defn find-member-by-id
-  [db member-id]
-  (->> db
-       :data
+  [component member-id]
+  (->> component
+       :db
        deref
        :members
        (filter #(= member-id (:id %)))
        first))
 
 (defn list-designers-for-game
-  [db game-id]
-  (let [designers (:designers (find-game-by-id db game-id))]
-    (->> db
-         :data
+  [component game-id]
+  (let [designers (:designers (find-game-by-id component game-id))]
+    (->> component
+         :db
          deref
          :designers
          (filter #(contains? designers (:id %))))))
 
 (defn list-games-for-designer
-  [db designer-id]
-  (->> db
-       :data
+  [component designer-id]
+  (->> component
+       :db
        deref
        :games
        (filter #(-> % :designers (contains? designer-id)))))
 
 (defn list-ratings-for-game
-  [db game-id]
-  (->> db
-       :data
+  [component game-id]
+  (->> component
+       :db
        deref
        :ratings
        (filter #(= game-id (:game_id %)))))
 
 (defn list-ratings-for-member
-  [db member-id]
-  (->> db
-       :data
+  [component member-id]
+  (->> component
+       :db
        deref
        :ratings
        (filter #(= member-id (:member_id %)))))
@@ -85,6 +97,5 @@
   "Adds a new game rating, or changes the value of an existing game rating."
   [db game-id member-id rating]
   (-> db
-      :data
+      :db
       (swap! update :ratings apply-game-rating game-id member-id rating)))
-
