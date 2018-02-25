@@ -1,12 +1,8 @@
-{:scalars
- {:UUID
-  {:parse :uuid-parse
-   :serialize :uuid-serialize}}
- :objects
+{:objects
  {:BoardGame
   {:description "A physical or virtual board game."
    :fields
-   {:id {:type (non-null UUID)}
+   {:id {:type (non-null Int)}
     :name {:type (non-null String)}
     :rating_summary {:type (non-null :GameRatingSummary)
                      :resolve :BoardGame/rating-summary}
@@ -35,7 +31,7 @@
   :Member
   {:description "A member of Clojure Game Geek.  Members can rate games."
    :fields
-   {:id {:type (non-null UUID)}
+   {:id {:type (non-null Int)}
     :member_name {:type (non-null String)
                   :description "Unique name of member."}
     :ratings {:type (list :GameRating)
@@ -54,7 +50,7 @@
   :Designer
   {:description "A person who may have contributed to a board game design."
    :fields
-   {:id {:type (non-null UUID)}
+   {:id {:type (non-null Int)}
     :name {:type (non-null String)}
     :url {:type String
           :description "Home page URL, if known."}
@@ -67,14 +63,14 @@
   {:type :BoardGame
    :description "Select a BoardGame by its unique id, if it exists."
    :args
-   {:id {:type (non-null UUID)}}
+   {:id {:type (non-null Int)}}
    :resolve :query/game-by-id}
 
   :member_by_id
   {:type :Member
    :description "Select a ClojureGameGeek Member by their unique id, if it exists."
    :args
-   {:id {:type (non-null UUID)}}
+   {:id {:type (non-null Int)}}
    :resolve :query/member-by-id}}
 
  :mutations
@@ -85,8 +81,8 @@
    On success (the game and member both exist), selects the BoardGame.
    Otherwise, selects nil and an error."
    :args
-   {:game_id {:type (non-null UUID)}
-    :member_id {:type (non-null UUID)}
+   {:game_id {:type (non-null Int)}
+    :member_id {:type (non-null Int)}
     :rating {:type (non-null Int)
              :description "Game rating as a number between 1 and 5."}}
    :resolve :mutation/rate-game}}}
