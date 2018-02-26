@@ -1,6 +1,5 @@
 (ns clojure-game-geek.db
   (:require
-    [clojure.edn :as edn]
     [clojure.java.io :as io]
     [com.stuartsierra.component :as component]
     [postgres.async :refer [open-db query! close-db!]]
