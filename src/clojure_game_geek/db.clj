@@ -6,13 +6,13 @@
     [postgres.async :refer [open-db query! close-db!]]
     [clojure.core.async :refer [<!!]]))
 
-(defrecord ClojureGameGeekDb [db]
+(defrecord ClojureGameGeekDb [conn]
 
   component/Lifecycle
 
   (start [this]
     (assoc this
-           :db (open-db {:hostname "localhost"
+           :conn (open-db {:hostname "localhost"
                          :database "cggdb"
                          :username "cgg_role"
                          :password "lacinia"
@@ -20,8 +20,8 @@
                          :port 25432})))
 
   (stop [this]
-    (close-db! db)
-    (assoc this :db nil)))
+    (close-db! conn)
+    (assoc this :conn nil)))
 
 (defn new-db
   []
@@ -36,7 +36,7 @@
 
 (defn find-game-by-id
   [component game-id]
-  (-> (query! (:db component)
+  (-> (query! (:conn component)
               ["select game_id, name, summary, min_players, max_players, created_at, updated_at
                from board_game where game_id = $1" game-id])
       take!
