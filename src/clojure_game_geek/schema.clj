@@ -6,7 +6,8 @@
     [com.walmartlabs.lacinia.resolve :refer [resolve-as]]
     [com.stuartsierra.component :as component]
     [clojure-game-geek.db :as db]
-    [clojure.edn :as edn]))
+    [clojure.edn :as edn]
+    [com.walmartlabs.lacinia.schema :as schema]))
 
 (defn game-by-id
   [db]
