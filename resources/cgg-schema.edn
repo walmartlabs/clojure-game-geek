@@ -2,7 +2,7 @@
  {:BoardGame
   {:description "A physical or virtual board game."
    :fields
-   {:id {:type ID}
+   {:id {:type (non-null ID)}
     :name {:type (non-null String)}
     :summary {:type String
               :description "A one-line summary of the game."}
