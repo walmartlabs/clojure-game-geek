@@ -1,6 +1,5 @@
 (ns clojure-game-geek.db
   (:require
-    [clojure.java.io :as io]
     [com.stuartsierra.component :as component]
     [postgres.async :refer [open-db query! close-db!]]
     [clojure.core.async :refer [<!!]]))
@@ -27,6 +26,8 @@
   {:db (map->ClojureGameGeekDb {})})
 
 (defn ^:private take!
+  "Takes a value from a channel and rethrows an exception if that is the
+  conveyed value."
   [ch]
   (let [v (<!! ch)]
     (if (instance? Throwable v)
