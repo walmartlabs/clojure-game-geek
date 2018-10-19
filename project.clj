@@ -3,10 +3,10 @@
   :url "https://github.com/walmartlabs/clojure-game-geek"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/core.async "0.3.443"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
+                 [org.clojure/core.async "0.4.474"]
                  [com.stuartsierra/component "0.3.2"]
-                 [com.walmartlabs/lacinia "0.25.0"]
-                 [com.walmartlabs/lacinia-pedestal "0.7.0"]
+                 [com.walmartlabs/lacinia "0.30.0"]
+                 [com.walmartlabs/lacinia-pedestal "0.10.0"]
                  [alaisi/postgres.async "0.8.0"]
-                 [io.aviso/logging "0.2.0"]])
+                 [io.aviso/logging "0.3.1"]])
