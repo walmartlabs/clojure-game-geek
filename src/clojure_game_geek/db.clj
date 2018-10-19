@@ -1,8 +1,10 @@
 (ns clojure-game-geek.db
   (:require
     [com.stuartsierra.component :as component]
-    [postgres.async :refer [open-db query! close-db!]]
-    [clojure.core.async :refer [<!!]]))
+    [postgres.async :refer [open-db close-db!] :as pa]
+    [clojure.core.async :refer [<!!]]
+    [io.pedestal.log :as log]
+    [clojure.string :as str]))
 
 (defrecord ClojureGameGeekDb [conn]
 
@@ -34,9 +36,16 @@
       (throw v)
       v)))
 
+(defn ^:private query!
+  [component statement]
+  (let [[sql & params] statement]
+    (log/debug :sql (str/replace sql #"\s+" " ")
+               :params params))
+  (pa/query! (:conn component) statement))
+
 (defn find-game-by-id
   [component game-id]
-  (-> (query! (:conn component)
+  (-> (query! component
               ["select game_id, name, summary, min_players, max_players, created_at, updated_at
                from board_game where game_id = $1" game-id])
       take!
@@ -44,7 +53,7 @@
 
 (defn find-member-by-id
   [component member-id]
-  (-> (query! (:conn component)
+  (-> (query! component
               ["select member_id, name, created_at, updated_at
               from member
               where member_id = $1" member-id])
@@ -54,7 +63,7 @@
 (defn list-designers-for-game
   [component game-id]
   (take!
-    (query! (:conn component)
+    (query! component
             ["select d.designer_id, d.name, d.uri, d.created_at, d.updated_at
               from designer d
               inner join designer_to_game j on (d.designer_id = j.designer_id)
@@ -64,7 +73,7 @@
 (defn list-games-for-designer
   [component designer-id]
   (take!
-    (query! (:conn component)
+    (query! component
             ["select g.game_id, g.name, g.summary, g.min_players, g.max_players, g.created_at, g.updated_at
               from board_game g
               inner join designer_to_game j on (g.game_id = j.game_id)
@@ -74,7 +83,7 @@
 (defn list-ratings-for-game
   [component game-id]
   (take!
-    (query! (:conn component)
+    (query! component
             ["select game_id, member_id, rating, created_at, updated_at
               from game_rating
               where game_id = $1" game-id])))
@@ -82,7 +91,7 @@
 (defn list-ratings-for-member
   [component member-id]
   (take!
-    (query! (:conn component)
+    (query! component
             ["select game_id, member_id, rating, created_at, updated_at
               from game_rating
               where member_id = $1" member-id])))
@@ -91,7 +100,7 @@
   "Adds a new game rating, or changes the value of an existing game rating."
   [component game-id member-id rating]
   (take!
-    (query! (:conn component)
+    (query! component
             ["insert into game_rating (game_id, member_id, rating)
               values ($1, $2, $3)
               on conflict (game_id, member_id) do update set rating = $3"
