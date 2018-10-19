@@ -44,58 +44,55 @@
 
 (defn find-member-by-id
   [component member-id]
-  (->> component
-       :db
-       deref
-       :members
-       (filter #(= member-id (:id %)))
-       first))
+  (-> (query! (:conn component)
+              ["select member_id, name, created_at, updated_at
+              from member
+              where member_id = $1" member-id])
+      take!
+      first))
 
 (defn list-designers-for-game
   [component game-id]
-  (let [designers (:designers (find-game-by-id component game-id))]
-    (->> component
-         :db
-         deref
-         :designers
-         (filter #(contains? designers (:id %))))))
+  (take!
+    (query! (:conn component)
+            ["select d.designer_id, d.name, d.uri, d.created_at, d.updated_at
+              from designer d
+              inner join designer_to_game j on (d.designer_id = j.designer_id)
+              where j.game_id = $1
+              order by d.name" game-id])))
 
 (defn list-games-for-designer
   [component designer-id]
-  (->> component
-       :db
-       deref
-       :games
-       (filter #(-> % :designers (contains? designer-id)))))
+  (take!
+    (query! (:conn component)
+            ["select g.game_id, g.name, g.summary, g.min_players, g.max_players, g.created_at, g.updated_at
+              from board_game g
+              inner join designer_to_game j on (g.game_id = j.game_id)
+              where j.designer_id = $1
+              order by g.name" designer-id])))
 
 (defn list-ratings-for-game
   [component game-id]
-  (->> component
-       :db
-       deref
-       :ratings
-       (filter #(= game-id (:game_id %)))))
+  (take!
+    (query! (:conn component)
+            ["select game_id, member_id, rating, created_at, updated_at
+              from game_rating
+              where game_id = $1" game-id])))
 
 (defn list-ratings-for-member
   [component member-id]
-  (->> component
-       :db
-       deref
-       :ratings
-       (filter #(= member-id (:member_id %)))))
-
-(defn ^:private apply-game-rating
-  [game-ratings game-id member-id rating]
-  (->> game-ratings
-       (remove #(and (= game-id (:game_id %))
-                     (= member-id (:member_id %))))
-       (cons {:game_id game-id
-              :member_id member-id
-              :rating rating})))
+  (take!
+    (query! (:conn component)
+            ["select game_id, member_id, rating, created_at, updated_at
+              from game_rating
+              where member_id = $1" member-id])))
 
 (defn upsert-game-rating
   "Adds a new game rating, or changes the value of an existing game rating."
-  [db game-id member-id rating]
-  (-> db
-      :db
-      (swap! update :ratings apply-game-rating game-id member-id rating)))
+  [component game-id member-id rating]
+  (take!
+    (query! (:conn component)
+            ["insert into game_rating (game_id, member_id, rating)
+              values ($1, $2, $3)
+              on conflict (game_id, member_id) do update set rating = $3"
+             game-id member-id rating])))
