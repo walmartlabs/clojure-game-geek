@@ -99,9 +99,10 @@
 (defn upsert-game-rating
   "Adds a new game rating, or changes the value of an existing game rating."
   [component game-id member-id rating]
-  (take!
-    (query! component
-            ["insert into game_rating (game_id, member_id, rating)
+  (-> (query! component
+              ["insert into game_rating (game_id, member_id, rating)
               values ($1, $2, $3)
               on conflict (game_id, member_id) do update set rating = $3"
-             game-id member-id rating])))
+               game-id member-id rating])
+      take!
+      first))
