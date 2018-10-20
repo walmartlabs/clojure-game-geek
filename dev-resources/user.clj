@@ -4,6 +4,7 @@
     [clojure.java.browse :refer [browse-url]]
     [clojure-game-geek.system :as system]
     [clojure.walk :as walk]
+    clojure.java.jdbc.spec
     [com.stuartsierra.component :as component])
   (:import (clojure.lang IPersistentMap)))
 
