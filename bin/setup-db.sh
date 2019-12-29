@@ -62,6 +62,9 @@ create table game_rating (
   created_at timestamp not null default current_timestamp,
   updated_at timestamp not null default current_timestamp);
 
+alter table game_rating add constraint cost_unique__game_rating_game_id_member_id
+unique (game_id, member_id);
+
 create trigger game_rating_updated_at before update
 on game_rating for each row execute procedure 
 mantain_updated_at();

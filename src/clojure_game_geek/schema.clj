@@ -48,17 +48,17 @@
 (defn board-game-designers
   [db]
   (fn [_ _ board-game]
-    (db/list-designers-for-game db (:id board-game))))
+    (db/list-designers-for-game db (:game_id board-game))))
 
 (defn designer-games
   [db]
   (fn [_ _ designer]
-    (db/list-games-for-designer db (:id designer))))
+    (db/list-games-for-designer db (:designer_id designer))))
 
 (defn rating-summary
   [db]
   (fn [_ _ board-game]
-    (let [ratings (map :rating (db/list-ratings-for-game db (:id board-game)))
+    (let [ratings (map :rating (db/list-ratings-for-game db (:game_id board-game)))
           n (count ratings)]
       {:count n
        :average (if (zero? n)
@@ -69,7 +69,7 @@
 (defn member-ratings
   [db]
   (fn [_ _ member]
-    (db/list-ratings-for-member db (:id member))))
+    (db/list-ratings-for-member db (:member_id member))))
 
 (defn game-rating->game
   [db]

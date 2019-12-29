@@ -39,6 +39,13 @@
                :params params))
   (jdbc/query (:ds component) statement))
 
+(defn ^:private execute!
+  [component statement]
+  (let [[sql & params] statement]
+    (log/debug :sql (str/replace sql #"\s+" " ")
+               :params params))
+  (jdbc/execute! (:ds component) statement))
+
 (defn find-game-by-id
   [component game-id]
   (first
@@ -52,7 +59,7 @@
     (query component
            ["select member_id, name, created_at, updated_at
              from member
-             where member_id = $1" member-id])))
+             where member_id = ?" member-id])))
 
 (defn list-designers-for-game
   [component game-id]
@@ -60,7 +67,7 @@
          ["select d.designer_id, d.name, d.uri, d.created_at, d.updated_at
            from designer d
            inner join designer_to_game j on (d.designer_id = j.designer_id)
-           where j.game_id = $1
+           where j.game_id = ?
            order by d.name" game-id]))
 
 (defn list-games-for-designer
@@ -69,7 +76,7 @@
          ["select g.game_id, g.name, g.summary, g.min_players, g.max_players, g.created_at, g.updated_at
            from board_game g
            inner join designer_to_game j on (g.game_id = j.game_id)
-           where j.designer_id = $1
+           where j.designer_id = ?
            order by g.name" designer-id]))
 
 (defn list-ratings-for-game
@@ -77,24 +84,24 @@
   (query component
          ["select game_id, member_id, rating, created_at, updated_at
            from game_rating
-           where game_id = $1" game-id]))
+           where game_id = ?" game-id]))
 
 (defn list-ratings-for-member
   [component member-id]
   (query component
          ["select game_id, member_id, rating, created_at, updated_at
            from game_rating
-           where member_id = $1" member-id]))
+           where member_id = ?" member-id]))
 
 (defn upsert-game-rating
   "Adds a new game rating, or changes the value of an existing game rating.
 
   Returns nil"
   [component game-id member-id rating]
-  (query component
+  (execute! component
          ["insert into game_rating (game_id, member_id, rating)
-           values ($1, $2, $3)
-           on conflict (game_id, member_id) do update set rating = $3"
-          game-id member-id rating])
+           values (?, ?, ?)
+           on conflict (game_id, member_id) do update set rating = ?"
+          game-id member-id rating rating])
 
   nil)
