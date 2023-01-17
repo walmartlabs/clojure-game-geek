@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker exec -ti --user postgres cgg_db_1 psql -Ucgg_role cggdb
+docker exec -ti --user postgres clojure-game-geek-db-1 psql -Ucgg_role cggdb
